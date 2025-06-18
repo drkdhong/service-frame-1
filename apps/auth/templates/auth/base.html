@@ -1,5 +1,5 @@
 <!doctype  html>
-<!-- apps/main/templates/main/base.html -->
+<!-- apps/auth/templates/auth/base.html -->
 <html lang="ko"><head><meta charset="UTF-8">
 <link rel="stylesheet" href={{ url_for('static', filename = 'css/bootstrap.min.css')}}/>
 <link rel="stylesheet" href={{ url_for('static', filename = 'css/style.css' )}}/>
@@ -12,7 +12,7 @@
     <ul class="navbar-nav">
     {% if current_user.is_authenticated %}
     <li class="nav-item">
-      <span class="nav-link">{{ current_user.username }}</span>
+      <span class="nav-link">{{ current_user.username }}</span> <!-- username 클릭하면 mypage로 이동추가 -->
     </li>
     <li class="nav-item">
       <a href="{{ url_for('auth.logout') }}" class="nav-link">로그아웃</a>
@@ -28,5 +28,4 @@
     </ul></div></nav>
 <!-- content를 상속처에서 구현 -->
 <section class= "container">
-{% block content %}{% endblock %}
-</section></body></html>
+{% block content %}{% endblock %}</section></body></html>
