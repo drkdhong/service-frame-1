@@ -21,5 +21,5 @@ class Config:
     # API Key 관련 설정 (필요시 추가)
     #API_KEY_LENGTH = 32 # API 키 길이
     #API_KEY_EXPIRATION_DAYS = 365 # API 키 만료일
-    #ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')    
-    #ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
+    ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')    
+    ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')

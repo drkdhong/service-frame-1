@@ -1,5 +1,5 @@
 #apps/auth/models.py
-from apps import db, login_manager  # apps에서 db 및 login_manager를 import
+from apps.extension import db, login_manager  # apps.extension에서 db,login_manager를 import
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash 
 #hash import
@@ -11,6 +11,7 @@ class User(db.Model, UserMixin):
     username=db.Column(db.String, index=True)
     email=db.Column(db.String, unique=True, index= True)
     password_hash=db.Column(db.String)
+    is_admin=db.Column(db.Boolean,default=False)
     created_at=db.Column(db.DateTime, default= datetime.now)
     updated_at=db.Column(db.DateTime, default= datetime.now, onupdate=datetime.now)
     @property     # 비밀번호 호출 프로퍼티
@@ -18,7 +19,7 @@ class User(db.Model, UserMixin):
         raise AttributeError("읽을 수 없음")
     @password.setter    # 비밀번호 설정
     def password(self, password):
-        self.password_hash=generate_password_hash( password)
+        self.password_hash=generate_password_hash(password)
     # 비밀번호 체크
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)

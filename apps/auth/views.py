@@ -1,5 +1,5 @@
 # apps/auth/views.py
-from apps import db
+from apps.extension import db, login_manager
 from .forms import SignUpForm, LoginForm
 from .models import User
 from flask import render_template, flash, url_for, redirect, request
