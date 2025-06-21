@@ -36,9 +36,9 @@ def create_app():     #  factory 함수
     # Flask-Login: 사용자 로더 설정 (auth 블루프린트에서 import하여 사용)
     # create_app() 정의 또는 auth/__init__.py 정의하여 login_manager.user_loader 데코레이터와 함께 사용
     from .auth.models import User  # User 모델 임포트
-    @login_manager.user_loader
-    def load_user(user_id):   # Flask-Login이 user_id를 기반으로 사용자 객체를 로드
-        return User.query.get(int(user_id))
+    #@login_manager.user_loader
+    #def load_user(user_id):   # Flask-Login이 user_id를 기반으로 사용자 객체를 로드
+    #    return User.query.get(int(user_id))
     # 블루프린트 등록
     from .main import main
     from .auth import auth
