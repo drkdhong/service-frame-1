@@ -6,14 +6,15 @@ from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash
-from .extension import db, login_manager
+from .extensions import db, login_manager
 from apps.admin import MyAdminIndexView, UserAdminView
 from .config import Config
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 
 # 전역 변수/인스턴스 초기화 (블루프린트에서 import하여 공유)
-#db = SQLAlchemy()    # SQLAlchemy() 이용 db 객체 생성, extension.py에 별도 작성
+# apps/extensions.py에 작성
+#db = SQLAlchemy()    # SQLAlchemy() 이용 db 객체 생성
 #login_manager = LoginManager()  # 2. Login Manager 초기화
 csrf = CSRFProtect()  # CSRF 보호 객체 생성
 
@@ -33,6 +34,7 @@ def create_app():     #  factory 함수
         from flask import flash, redirect, url_for, request
         flash('로그인이 필요합니다.', 'warning')
         return redirect(url_for('auth.login', next=request.path))
+
     # Flask-Login: 사용자 로더 설정 (auth 블루프린트에서 import하여 사용)
     # create_app() 정의 또는 auth/__init__.py 정의하여 login_manager.user_loader 데코레이터와 함께 사용
     from .auth.models import User  # User 모델 임포트
@@ -42,12 +44,10 @@ def create_app():     #  factory 함수
     # 블루프린트 등록
     from .main import main
     from .auth import auth
-    from .admin import admin
     #from .iris import iris as iris_bp
     #from .iris import iris as iris_api_bp
     app.register_blueprint(main)
     app.register_blueprint(auth, url_prefix='/auth')
-    ##app.register_blueprint(admin, url_prefix='/admin')
     #app.register_blueprint(iris_bp, url_prefix='/iris')
     #app.register_blueprint(iris_api_bp, url_prefix='/api/iris')
     # Flask-Admin 설정 (관리자 페이지)  # flask-admin 인스턴스 생성 및 관리자 페이지의 첫 화면 설정
@@ -58,20 +58,20 @@ def create_app():     #  factory 함수
     #admin.add_view(UsageLogAdminView(UsageLog, db.session, name='사용량 로그'))
     # db 테이블 생성 및 관리자 초기계정 생성
     with app.app_context():
-        #db.drop_all()   # 운영시 삭제
+        db.drop_all()         # 운영시에는 커멘트 처리 필요
         db.create_all()       # 테이블 생성
         # 최초 관리자 계정 생성
         admin_username = app.config.get('ADMIN_USERNAME')
+        admin_email = app.config.get('ADMIN_EMAIL')
         admin_password = app.config.get('ADMIN_PASSWORD')
         if admin_username and admin_password:
             admin_user = User.query.filter_by(username=admin_username).first()
             if not admin_user:
                 hashed_password = generate_password_hash(admin_password)
-                new_admin = User(username=admin_username, password=hashed_password, is_admin=True)
-#                new_admin = User(email=admin_username, password=hashed_password, is_admin=True)
+                new_admin = User(username=admin_username, email=admin_email, password_hash=hashed_password, is_admin=True)
                 db.session.add(new_admin)
                 db.session.commit()
-                print(f"관리자 계정 '{admin_username}{admin_password}'이(가) 생성되었습니다.")
+                print(f"관리자 계정 '{admin_username}', '{admin_password}' 이(가) 생성되었습니다.")
             else:
                 print(f"관리자 계정 '{admin_username}'이(가) 이미 존재합니다.")
         else:

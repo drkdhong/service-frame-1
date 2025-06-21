@@ -6,7 +6,7 @@
 <title>{% block title %}{% endblock %}</title></head>
 <body>
 <!-- 내비게이션 바를 작성한다 -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">　
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
     <a class="navbar-brand " href="{{ url_for('main.index') }}">main</a>
     <ul class="navbar-nav">
@@ -18,7 +18,7 @@
             <a class="nav-link" href="{{ url_for('admin.index') }}">관리자</a></li>
         {% endif %}
         <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('mypage.dashboard') }}">마이페이지</a></li>
+            <a class="nav-link" href="{{ url_for('main.index') }}">마이페이지</a></li>
     <li class="nav-item">
       <a class="nav-link" href="{{ url_for('auth.logout') }}">로그아웃</a></li>
     {% else %}
