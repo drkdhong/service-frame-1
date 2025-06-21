@@ -24,7 +24,6 @@ class User(db.Model, UserMixin):
         Attempting to read `user.password` will raise an AttributeError.
         """
         raise AttributeError('password is not a readable attribute')
-
     @password.setter
     def password(self, password):
         """
@@ -32,38 +31,27 @@ class User(db.Model, UserMixin):
         This allows you to do `user.password = "mysecretpassword"`.
         """
         self.password_hash = generate_password_hash(password)
-
     # Method to check password (you likely already have this or check_password)
     def check_password(self, password):
         """Checks if the provided password matches the stored hash."""
         if self.password_hash is None:
             return False
         return check_password_hash(self.password_hash, password)
-
     # 비밀번호 체크
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
-
     # Flask-Login required methods
-    def get_id(self):
-        return str(self.id)
-
     @property
     def is_authenticated(self):
         return True
-
     @property
     def is_active(self):
         return True
-
     @property
     def is_anonymous(self):
         return False
-
     def __repr__(self):
         return f'<User {self.username}>'
-
-
     # 이메일 중복 체크
     def is_duplicate_email(self):
         return User.query.filter_by(email=self.email).first() is not None

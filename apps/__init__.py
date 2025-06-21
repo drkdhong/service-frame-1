@@ -50,6 +50,7 @@ def create_app():     #  factory 함수
     app.register_blueprint(auth, url_prefix='/auth')
     #app.register_blueprint(iris_bp, url_prefix='/iris')
     #app.register_blueprint(iris_api_bp, url_prefix='/api/iris')
+    # flask-admin 은 블루프린트 등록이 필요없음
     # Flask-Admin 설정 (관리자 페이지)  # flask-admin 인스턴스 생성 및 관리자 페이지의 첫 화면 설정
     admin=Admin(app,name='Flask Admin', template_mode='bootstrap3', index_view = MyAdminIndexView())
     # 모델 뷰 추가 (User, APIKey, UsageLog 모델을 관리자 페이지에서 관리할 수 있도록)
