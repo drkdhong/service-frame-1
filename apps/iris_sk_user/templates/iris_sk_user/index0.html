@@ -1,0 +1,26 @@
+<!-- apps/auth/templates/auth/signup.html -->
+{%  extends  "auth/base.html"  %} 
+{% block title %}Iris 품종 예측{% endblock %}
+{% block content %}
+
+<div class="mx-auto dt-auth-main">
+  <div class="card">
+    <header>품종 예측</header>
+    <section>
+      <form action="{{url_for('iris_sk_user.iris_predict',next= request.args.get('next')) }}" method="POST" novalidate="novalidate">
+        {{ form.csrf_token }}  
+        </label><br>
+        <label>Sepal Length: <input name="sepal_length" type="number" step="any" required value="{{ sepal_length|default('') }}"></label><br>
+        <label>Sepal Width: <input name="sepal_width" type="number" step="any" required value="{{ sepal_width|default('') }}"></label><br>
+        <label>Petal Length: <input name="petal_length" type="number" step="any" required value="{{ petal_length|default('') }}"></label><br>
+        <label>Petal Width: <input name="petal_width" type="number" step="any" required value="{{ petal_width|default('') }}"></label><br>
+        <button type="submit">예측</button></form>
+    {% if result %}
+        <h2>예측 결과: {{ result }}</h2>
+        <ul>  <li>Sepal Length: {{ sepal_length }}</li>  <li>Sepal Width: {{ sepal_width }}</li>
+            <li>Petal Length: {{ petal_length }}</li>  <li>Petal Width: {{ petal_width }}</li></ul>
+    {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -7,7 +7,7 @@ if os.environ.get('RENDER', None) != 'true':
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY')
     #API_KEY = os.getenv('API_KEY')
-    #LABELS = ['setosa', 'versicolor', 'virginica']
+    IRIS_LABELS = ['setosa', 'versicolor', 'virginica']
     INSTANCE_DIR = os.path.join(BASE_DIR, '..', 'instance')
     if not os.path.exists(INSTANCE_DIR):
         os.makedirs(INSTANCE_DIR)
