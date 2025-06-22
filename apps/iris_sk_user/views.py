@@ -35,6 +35,12 @@ def iris_predict():
                               )
     return render_template('iris_sk_user/index.html',form=form)
 
+
+
+
+
+
+
 """
     if request.method == 'POST':
         try:
