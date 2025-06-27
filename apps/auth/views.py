@@ -1,7 +1,7 @@
 # apps/auth/views.py
 from apps.extensions import db, login_manager
 from .forms import SignUpForm, LoginForm
-from .models import User
+from apps.dbmodels import User
 from flask import render_template, flash, url_for, redirect, request
 from flask_login import login_user, logout_user
 from apps import auth  # views.py import해서 라우팅 등록

@@ -1,12 +1,12 @@
-#apps/auth/models.py
-from apps import db, login_manager  # apps에서 db 및 login_manager를 import
+#apps/dbmodels.py
+from apps import db  # apps에서 db를 import
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash 
 #hash import
 from datetime import datetime
 class User(db.Model, UserMixin): 
 # db.Model, UserMixin 상속하는 User 클래스 생성
-    __tablename__= "users" #삭제시, 테이블 이름은 Model 이름 소문자 
+    __tablename__= "users"  # 삭제시, 테이블 이름은 Model 이름 소문자 
     id=db.Column(db.Integer,primary_key=True)
     username=db.Column(db.String, index=True)
     email=db.Column(db.String, unique=True, index= True)
@@ -59,8 +59,4 @@ class User(db.Model, UserMixin):
     # 이 함수는 Flask-Login이 사용자 객체를 로드할 때 사용됨
     def get_id(self):
         return str(self.id)
-    # 현재 로그인하고 있는 사용자 정보 취득 함수 설정 - apps/__init__.py에서도 정의(현재 중복)
-    # 데코레이터는 사용자객체로드과정을 Flask-Login에게 알려줌
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(user_id)
+    # 현재 로그인하고 있는 사용자 정보 취득 함수 설정은 apps/__init__.py에서 정의함

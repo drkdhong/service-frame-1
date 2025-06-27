@@ -7,7 +7,7 @@ from wtforms.validators import Optional # Make sure this is imported if used in 
 # Assuming apps/admin/forms.py exists and UserAdminForm is defined there
 from .forms import UserAdminForm # IMPORTANT: Make sure this import is correct
 from apps.extensions import db
-from ..auth.models import User # IMPORTANT: Make sure User model is imported
+from apps.dbmodels import User # IMPORTANT: Make sure User model is imported
 admin = Blueprint('admin', __name__, url_prefix='/admin')
 class MyAdminIndexView(AdminIndexView):
     def is_accessible(self):
