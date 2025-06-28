@@ -14,7 +14,9 @@
       {{ form.csrf_token }}
       {{ form.email(class="form-control dt-auth-input", placeholder="이메일 주소") }}
       {{ form.password(class="form-control dt-auth-input", placeholder="비밀번호") }} 
+      <div class="d-grid gap-2"> {# 버튼을 블록 레벨로 만들고 그리드 간격 추가 #}
       {{ form.submit(class="btn btn-md btn-primary btn-block dt-auth-btn") }}
+      </div>
       </form>
     </section>
   </div>

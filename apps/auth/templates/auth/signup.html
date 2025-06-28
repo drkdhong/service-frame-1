@@ -23,8 +23,10 @@
       {% for error in form.password.errors %}
       <span style="color:red;"> {{ error }} </span>
       {% endfor %}
+      <div class="d-grid gap-2"> {# 버튼을 블록 레벨로 만들고 그리드 간격 추가 #}
       {{ form.submit(class="btn btn-md btn-primary btn-block dt-auth-btn") }}
-      </form>
+      </div>
+    </form>
     </section>
   </div>
 </div>
