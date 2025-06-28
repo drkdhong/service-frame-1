@@ -31,7 +31,6 @@
                 </div>
             </form>
         </section>
-
         {% if result %}
         <section class="card-footer bg-light"> {# 배경색을 light로 변경하여 경계 강조 #}
             <div class="d-flex align-items-center justify-content-between mb-3"> {# 결과와 입력값을 분리하고 간격 유지 #}
@@ -40,7 +39,6 @@
                     {{ result }}
                 </span>
             </div>
-
         <form method="POST" action="{{ url_for('iris_sk_user.save_iris_data') }}">
             {{ form.csrf_token }} 
             <input type="hidden" name="sepal_length" value="{{ sepal_length }}">
@@ -59,7 +57,6 @@
                 <button type="submit" class="btn btn-primary btn-lg">확인저장</button> {# 크고 파란색 버튼 #}
             </div>
          </form>
-
             <p class="text-muted mb-2">입력된 꽃의 특성:</p> {# 설명 텍스트, 하단 마진 줄임 #}
             <ul class="list-group list-group-flush"> {# 리스트 그룹으로 변경, 플러시하여 테두리 제거 #}
                 <li class="list-group-item d-flex justify-content-between align-items-center py-1">
@@ -77,7 +74,6 @@
             </ul>
         </section>
         {% endif %}
-
     </div>
 </div>
 {% endblock %}

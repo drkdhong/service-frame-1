@@ -47,10 +47,8 @@ def save_iris_data():
         petal_width = request.form.get('petal_width')
         predicted_class = request.form.get('predicted_class')
         confirmed_class = request.form.get('confirmed_class') # 이게 핵심이에요!
-
         # 새로운 Iris 객체를 만들어요 (테이블의 새 줄과 같아요)
-        new_iris_entry = IRIS(
-            user_id=current_user.id,
+        new_iris_entry = IRIS( user_id=current_user.id,
             #api_key_id=
             sepal_length=float(sepal_length), # 저장하기 전에 숫자로 바꿔줘요
             sepal_width=float(sepal_width),
@@ -60,21 +58,11 @@ def save_iris_data():
             confirmed_class=confirmed_class,  # 수정되었거나 저장된 값을 저장해요
             confirm =True
             )
-
-        # 새로운 객체를 데이터베이스 세션에 추가해요.
-        db.session.add(new_iris_entry)
-        # 변경 사항을 데이터베이스에 실제로 저장해요.
-        db.session.commit()
-        return redirect(url_for('iris_sk_user.iris_predict')) # 예측 페이지로 다시 이동해요
-    
+        db.session.add(new_iris_entry)        # 새로운 객체를 데이터베이스 세션에 추가
+        db.session.commit()                   # 변경 사항을 데이터베이스에 실제로 저장
+        return redirect(url_for('iris_sk_user.iris_predict')) # 예측 페이지로 다시 이동
     flash('데이터 저장 중 오류가 발생했습니다.', 'danger')
     return redirect(url_for('iris_sk_user.iris_predict'))
-
-
-
-
-
-
 """
     if request.method == 'POST':
         try:
