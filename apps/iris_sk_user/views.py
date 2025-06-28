@@ -2,7 +2,7 @@ from flask import Flask, flash, redirect, request, render_template, jsonify, abo
 import pickle
 import os
 
-from apps.dbmodels import IRIS, db, User, APIKey, UsageLog
+from apps.dbmodels import IRIS, UsageType, db, User, APIKey, UsageLog
 import numpy as np
 from flask_login import current_user, login_required
 from apps.iris_sk_user.forms import IrisUserForm
@@ -29,10 +29,22 @@ def iris_predict():
     
         features=np.array([[sepal_length, sepal_width, petal_length, petal_width]])
         pred = model.predict(features)[0]
+        print(UsageType.LOGIN)
+        new_usage_log=UsageLog( 
+            user_id=current_user.id,
+            #api_key_id=
+            usage_type=UsageType.LOGIN, # LOGIN 타입으로 저장
+            endpoint=request.path,
+            remote_addr=request.remote_addr,
+            response_status_code=200
+            )
+        db.session.add(new_usage_log)     # 새로운 객체를 데이터베이스 세션에 추가
+        db.session.commit() # 변경 사항을 데이터베이스에 실제로 저장
         return render_template('iris_sk_user/index.html',
                                result=TARGET_NAMES[pred],
                                sepal_length=sepal_length, sepal_width=sepal_width,
-                               petal_length=petal_length, petal_width=petal_width, form=form, TARGET_NAMES=TARGET_NAMES
+                               petal_length=petal_length, petal_width=petal_width, form=form,
+                               TARGET_NAMES=TARGET_NAMES
                               )
     return render_template('iris_sk_user/index.html',form=form)
 
