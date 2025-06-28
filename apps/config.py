@@ -5,6 +5,7 @@ if os.environ.get('RENDER', None) != 'true':
     dotenv_path = os.path.join(BASE_DIR, '..', '.env')
     load_dotenv(dotenv_path)
 class Config:
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     SECRET_KEY = os.getenv('SECRET_KEY')
     #API_KEY = os.getenv('API_KEY')
     IRIS_LABELS = ['setosa', 'versicolor', 'virginica']
