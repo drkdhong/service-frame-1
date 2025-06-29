@@ -75,6 +75,15 @@ def save_iris_data():
         return redirect(url_for('iris_sk_user.iris_predict')) # 예측 페이지로 다시 이동
     flash('데이터 저장 중 오류가 발생했습니다.', 'danger')
     return redirect(url_for('iris_sk_user.iris_predict'))
+
+@iris_sk_user.route('/ai_results')
+@login_required
+def ai_results():
+    # 현재 로그인한 사용자의 추론 결과를 가져오기
+    # 생성 순서대로 가져오기
+    user_results = IRIS.query.filter_by(user_id=current_user.id).order_by(IRIS.created_at.desc()).all()
+    return render_template('iris_sk_user/results.html',title='추론결과', results=user_results)
+
 """
     if request.method == 'POST':
         try:
