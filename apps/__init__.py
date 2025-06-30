@@ -4,12 +4,13 @@ from flask import Flask
 from werkzeug.security import generate_password_hash
 from .extensions import db, migrate, login_manager, csrf
 from apps.admin import MyAdminIndexView, UserAdminView
+#from apps.admin import MyAdminIndexView, UserAdminView,APIKeyAdminView,UsageLogAdminView
 from .config import Config
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
+#from apps.dbmodels import User, APIKey, UsageLog
 
 # 전역 변수/인스턴스 초기화 (extensions.py에서 정의)
-
 def create_app():     #  factory 함수
     app = Flask(__name__)
     app.config.from_object(Config) # config.py에서 설정 로드
@@ -33,17 +34,15 @@ def create_app():     #  factory 함수
         from flask import flash, redirect, url_for, request
         flash('로그인이 필요합니다.', 'warning')
         return redirect(url_for('auth.login', next=request.path))
-
     # 블루프린트 등록
     from .main import main
     from .auth import auth
-    from .iris_sk_user import iris_sk_user
-    #from .iris import iris as iris_bp
+    from .iris import iris
     #from .iris import iris as iris_api_bp
     app.register_blueprint(main)
     app.register_blueprint(auth, url_prefix='/auth')
-    app.register_blueprint(iris_sk_user, url_prefix='/iris_sk_user')
-    #app.register_blueprint(iris_api_bp, url_prefix='/api/iris')
+    app.register_blueprint(iris, url_prefix='/iris')
+    #app.register_blueprint(iris_api_bp, url_prefix='/api/iris’)
     # flask-admin 은 블루프린트 등록이 필요없음
     # Flask-Admin 설정 (관리자 페이지)  # flask-admin 인스턴스 생성 및 관리자 페이지의 첫 화면 설정
     admin=Admin(app,name='Flask Admin', template_mode='bootstrap3', index_view = MyAdminIndexView())
@@ -55,10 +54,12 @@ def create_app():     #  factory 함수
     with app.app_context():
         #db.drop_all()         # 운영시에는 커멘트 처리 필요
         db.create_all()       # 테이블 생성
+
         # 최초 관리자 계정 생성
         admin_username = app.config.get('ADMIN_USERNAME')
         admin_email = app.config.get('ADMIN_EMAIL')
         admin_password = app.config.get('ADMIN_PASSWORD')
+
         if admin_username and admin_password:
             admin_user = User.query.filter_by(username=admin_username).first()
             if not admin_user:
@@ -71,4 +72,4 @@ def create_app():     #  factory 함수
                 print(f"관리자 계정 '{admin_username}'이(가) 이미 존재합니다.")
         else:
             print("ADMIN_USERNAME 또는 ADMIN_PASSWORD 환경 변수가 설정되지 않았습니다.")
-    return app
+        return app

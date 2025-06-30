@@ -92,6 +92,7 @@ class UsageLog(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
     api_key_id = db.Column(db.Integer, db.ForeignKey('api_keys.id'), index=True)
     usage_type = db.Column(db.Enum(UsageType), nullable=False) # 로그인 기반 또는 API Key 기반
+    login_confirm = db.Column(db.String(10), nullable=True) # 로그인 사용자의 AI 추론에 대한 결과 confirm저장 유무(확인)
     endpoint = db.Column(db.String(120), nullable=False) # 사용된 서비스 엔드포인트
     timestamp = db.Column(db.DateTime, default= datetime.now, index=True)
     # 요청 IP, 요청 바디 요약, 응답 상태 코드 등 상세 로그를 위한 필드 추가

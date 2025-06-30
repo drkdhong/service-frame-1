@@ -1,4 +1,4 @@
-# apps/iris_sk_user/forms.py
+# apps/iris/forms.py
 from flask_wtf import FlaskForm # <-- FlaskForm을 정확히 임포트했는지 확인
 from wtforms import StringField, SubmitField, FloatField, PasswordField # 필요한 필드 임포트
 from wtforms.validators import DataRequired, Email, Optional
@@ -10,3 +10,4 @@ class IrisUserForm(FlaskForm):
     petal_width = FloatField('petal width', validators=[DataRequired()])
 #    api_key = PasswordField('api_key', validators=[DataRequired()])
     submit = SubmitField('예측')
+

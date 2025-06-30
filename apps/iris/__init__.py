@@ -1,7 +1,7 @@
-# apps/iris_sk_user/__init__.py
+# apps/iris/__init__.py
 from flask import Blueprint
 
-iris_sk_user = Blueprint('iris_sk_user', __name__, template_folder='templates')
+iris = Blueprint('iris', __name__, template_folder='templates')
 # iris 블루프린트 생성, static 폴더는 apps/static/iris에 위치함
 # iris 블루프린트 생성, templates 폴더는 apps/templates/iris에 위치함
 
