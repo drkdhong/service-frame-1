@@ -1,5 +1,5 @@
 # apps/iris/views.py
-from flask import Flask, flash, redirect, request, render_template, jsonify, abort, current_app, url_for
+from flask import Flask, flash, redirect, request, render_template, jsonify, abort, current_app, url_for, g
 import pickle, os 
 import logging, functools
 from apps.extensions import csrf # 이 줄을 추가하여 정의된 csrf 객체를 임포트
@@ -140,7 +140,7 @@ def ai_results():
 def ai_logs():
     # 현재 로그인한 사용자의 AI 추론 로그 가져오기
     # 생성 순서대로 가져오기
-    user_logs = UsageLog.query.filter_by(user_id=current_user.id).order_by(UsageLog.created_at.desc()).all()
+    user_logs = UsageLog.query.filter_by(user_id=current_user.id).order_by(UsageLog.timestamp.desc()).all()
     return render_template('iris/user_logs.html',title='AI로그이력', results=user_logs)
 
 @iris.route('/api/predict', methods=['POST'])
@@ -207,8 +207,8 @@ def api_predict():
         print(f": '{sepal_length} {sepal_width} {petal_length} {petal_width}' ") #
 
         new_usage_log=UsageLog(
-            user_id=None, # 실제 APIKey 모델 사용 시 api_key_obj.user_id
-            api_key_id=None, # 실제 APIKey 모델 사용 시 api_key_obj.id
+            user_id=2, # 실제 APIKey 모델 사용 시 api_key_obj.user_id
+            api_key_id=1, # 실제 APIKey 모델 사용 시 api_key_obj.id
             usage_type=UsageType.API_KEY,
             endpoint=request.path,
             remote_addr=request.remote_addr,
@@ -218,8 +218,8 @@ def api_predict():
         db.session.add(new_usage_log)     # 새로운 객체를 데이터베이스 세션에 추가
 
         new_iris_entry = IRIS(
-            user_id=None, # 실제 APIKey 모델 사용 시 api_key_obj.user_id
-            api_key_id=None, # 실제 APIKey 모델 사용 시 api_key_obj.id
+            user_id=2, # 실제 APIKey 모델 사용 시 api_key_obj.user_id
+            api_key_id=1, # 실제 APIKey 모델 사용 시 api_key_obj.id
             sepal_length=sepal_length,
             sepal_width=sepal_width,
             petal_length=petal_length,
