@@ -12,3 +12,4 @@ login_manager.login_view = 'auth.login'
 login_manager.login_message = 'login should be required'
 
 # log 출력 추가 필요
+

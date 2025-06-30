@@ -2,7 +2,7 @@
 from flask import Flask, flash, redirect, request, render_template, jsonify, abort, current_app, url_for
 import pickle, os 
 import logging, functools
-
+from apps.extensions import csrf # 이 줄을 추가하여 정의된 csrf 객체를 임포트
 from apps.dbmodels import IRIS, db, User, APIKey, UsageLog, UsageType
 import numpy as np
 from flask_login import current_user, login_required
@@ -144,16 +144,34 @@ def ai_logs():
     return render_template('iris/user_logs.html',title='AI로그이력', results=user_logs)
 
 @iris.route('/api/predict', methods=['POST'])
-@rate_limit('API_KEY_RATE_LIMIT')
+#@rate_limit('API_KEY_RATE_LIMIT')
+@csrf.exempt
 def api_predict():
     auth_header = request.headers.get('X-API-Key')
     if not auth_header:
-        logging.warning("API Predict: No X-API-Key header provided.")
+        #logging.warning("API Predict: No X-API-Key header provided.")
         return jsonify({"error": "API Key is required"}), 401
-    api_key = APIKey.query.filter_by(key_string=auth_header, is_active=True).first()
-    if not api_key:
-        logging.warning(f"API Predict: Invalid or inactive API Key '{auth_header}'")
-        return jsonify({"error": "Invalid or inactive API Key"}), 401
+
+    #    하드코딩된 api_key 변수를 제거하거나, 실제 DB 조회 로직으로 대체하세요.
+    #    지금은 테스트를 위해 간단히 'your_api_key'와 일치하는지 확인하는 코드를 넣겠습니다.
+    expected_api_key = "your_api_key" # curl 명령에서 보낼 값과 일치해야 합니다.
+    if auth_header != expected_api_key:
+        #logging.warning(f"API Predict: Invalid API Key '{auth_header}'")
+        return jsonify({"error": "Invalid API Key"}), 401
+
+    # --- 실제 운영 환경에서는 APIKey 모델을 사용하여 데이터베이스에서 유효성을 검증해야 합니다. ---
+    # 예시: (주석 해제 시 apps.dbmodels 에서 APIKey 임포트 필요)
+    # from apps.dbmodels import APIKey # views.py 상단에 추가
+    # api_key_obj = APIKey.query.filter_by(key_string=auth_header, is_active=True).first()
+    # if not api_key_obj:
+    #     logging.warning(f"API Predict: Invalid or inactive API Key '{auth_header}'")
+    #     return jsonify({"error": "Invalid or inactive API Key"}), 401
+    # api_key_id_for_log = api_key_obj.id # UsageLog 및 IRIS 저장 시 사용할 ID
+    # ----------------------------------------------------------------------------------
+
+    # 임시로, 로그를 위해 실제 받은 API 키 문자열을 사용하겠습니다.
+    api_key_id_for_log = auth_header # 실제 DB ID 대신 문자열을 임시로 사용
+
     # API Key 사용량 제한은 @rate_limit 데코레이터에서 처리됩니다.
     # rate_limit 데코레이터에서 api_key.id를 사용하기 위해 kwargs에 전달
     # 이 부분은 @rate_limit 데코레이터의 로직을 조금 수정해야 합니다.
@@ -162,6 +180,7 @@ def api_predict():
     #g.user_id_for_log = api_key.user_id
     #g.api_key_id_for_log = api_key.id
     #g.usage_type_for_log = UsageType.API_KEY
+
     data = request.get_json()
     if not data:
         #logging.warning("API Predict: No JSON data provided.")
@@ -183,35 +202,32 @@ def api_predict():
 
         features=np.array([[sepal_length, sepal_width, petal_length, petal_width]])
         pred = model.predict(features)[0]
-        new_usage_log=UsageLog( 
-            #user_id=current_user.id,
-            #user_id=None,
-            user_id=api_key.user_id,
-            api_key_id=api_key.id,
-            #api_key_id=api_key,
-            usage_type=UsageType.API_KEY, # LOGIN 타입으로 저장
+# curl -X POST "http://localhost:5000/iris/api/predict" -H "Content-Type: application/json" -H "X-API-Key: your_api_key" -d "{\"sepal_length\":6.0,\"sepal_width\":3.5,\"petal_length\":4.5,\"petal_width\":1.5}"
+        print(f"pred: '{pred}'") #
+        print(f": '{sepal_length} {sepal_width} {petal_length} {petal_width}' ") #
+
+        new_usage_log=UsageLog(
+            user_id=None, # 실제 APIKey 모델 사용 시 api_key_obj.user_id
+            api_key_id=None, # 실제 APIKey 모델 사용 시 api_key_obj.id
+            usage_type=UsageType.API_KEY,
             endpoint=request.path,
             remote_addr=request.remote_addr,
             response_status_code=200,
-            request_data_summary=str(data)[:200] # 요청 데이터 요약
-            )
+            request_data_summary=str(data)[:200]
+        )
         db.session.add(new_usage_log)     # 새로운 객체를 데이터베이스 세션에 추가
 
-        new_iris_entry = IRIS( user_id=current_user.id,
-            #user_id=current_user.id,
-            #user_id=None,
-            #api_key_id=api_key,
-            user_id=api_key.user_id,
-            api_key_id=api_key.id,
-            sepal_length=float(sepal_length), # 저장하기 전에 숫자로 바꿔줘요
-            sepal_width=float(sepal_width),
-            petal_length=float(petal_length),
-            petal_width=float(petal_width),
+        new_iris_entry = IRIS(
+            user_id=None, # 실제 APIKey 모델 사용 시 api_key_obj.user_id
+            api_key_id=None, # 실제 APIKey 모델 사용 시 api_key_obj.id
+            sepal_length=sepal_length,
+            sepal_width=sepal_width,
+            petal_length=petal_length,
+            petal_width=petal_width,
             predicted_class=pred,
-            confirmed_class=None,  # API에서는 조회만 가능, 수정되었거나 저장된 값 저장않됨
-            confirm =True
-            )
- 
+            confirmed_class=None,
+            confirm=True
+        )
         db.session.add(new_iris_entry)     # 새로운 객체를 데이터베이스 세션에 추가
         db.session.commit() # 변경 사항을 데이터베이스에 실제로 저장
 
