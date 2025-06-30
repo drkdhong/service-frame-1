@@ -159,17 +159,17 @@ def api_predict():
     # 이 부분은 @rate_limit 데코레이터의 로직을 조금 수정해야 합니다.
     # 혹은 rate_limit 데코레이터 내에서 직접 APIKey 객체를 찾도록 구현할 수 있습니다.
     # 여기서는 간단히 user_id와 api_key_id를 g 객체에 저장하여 UsageLog에서 참조하도록 합니다.
-    g.user_id_for_log = api_key.user_id
-    g.api_key_id_for_log = api_key.id
-    g.usage_type_for_log = UsageType.API_KEY
+    #g.user_id_for_log = api_key.user_id
+    #g.api_key_id_for_log = api_key.id
+    #g.usage_type_for_log = UsageType.API_KEY
     data = request.get_json()
     if not data:
-        logging.warning("API Predict: No JSON data provided.")
+        #logging.warning("API Predict: No JSON data provided.")
         return jsonify({"error": "Invalid JSON"}), 400
     required_fields = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
     for field in required_fields:
         if field not in data:
-            logging.warning(f"API Predict: Missing field '{field}' in request data.")
+            #logging.warning(f"API Predict: Missing field '{field}' in request data.")
             return jsonify({"error": f"Missing field: {field}"}), 400
     try:
         sepal_length = float(data['sepal_length'])
@@ -177,66 +177,51 @@ def api_predict():
         petal_length = float(data['petal_length'])
         petal_width = float(data['petal_width'])
     except ValueError:
-        logging.warning("API Predict: Invalid data type for Iris features.")
+        #logging.warning("API Predict: Invalid data type for Iris features.")
         return jsonify({"error": "Invalid data type for Iris features. Must be numbers."}), 400
     try:
 
         features=np.array([[sepal_length, sepal_width, petal_length, petal_width]])
         pred = model.predict(features)[0]
         new_usage_log=UsageLog( 
-            user_id=current_user.id,
-            #api_key_id=None
-            usage_type=UsageType.LOGIN, # LOGIN 타입으로 저장
+            #user_id=current_user.id,
+            #user_id=None,
+            user_id=api_key.user_id,
+            api_key_id=api_key.id,
+            #api_key_id=api_key,
+            usage_type=UsageType.API_KEY, # LOGIN 타입으로 저장
             endpoint=request.path,
             remote_addr=request.remote_addr,
-            response_status_code=200
+            response_status_code=200,
+            request_data_summary=str(data)[:200] # 요청 데이터 요약
             )
+        db.session.add(new_usage_log)     # 새로운 객체를 데이터베이스 세션에 추가
 
         new_iris_entry = IRIS( user_id=current_user.id,
-            #api_key_id=
+            #user_id=current_user.id,
+            #user_id=None,
+            #api_key_id=api_key,
+            user_id=api_key.user_id,
+            api_key_id=api_key.id,
             sepal_length=float(sepal_length), # 저장하기 전에 숫자로 바꿔줘요
             sepal_width=float(sepal_width),
             petal_length=float(petal_length),
             petal_width=float(petal_width),
-            predicted_class=predicted_class,
-            confirmed_class=confirmed_class,  # 수정되었거나 저장된 값을 저장해요
+            predicted_class=pred,
+            confirmed_class=None,  # API에서는 조회만 가능, 수정되었거나 저장된 값 저장않됨
             confirm =True
             )
+ 
         db.session.add(new_iris_entry)     # 새로운 객체를 데이터베이스 세션에 추가
         db.session.commit() # 변경 사항을 데이터베이스에 실제로 저장
 
-
-
-        predicted_class = get_iris_prediction(sepal_length, sepal_width, petal_length, petal_width)
-        new_iris_result = IRIS(
-            user_id=api_key.user_id,
-            sepal_length=sepal_length,
-            sepal_width=sepal_width,
-            petal_length=petal_length,
-            petal_width=petal_width,
-            predicted_class=predicted_class
-        )
-        db.session.add(new_iris_result)
-        # 사용량 로그 기록
-        usage_log = UsageLog(
-            user_id=api_key.user_id,
-            api_key_id=api_key.id,
-            usage_type=UsageType.API_KEY,
-            endpoint=request.path,
-            remote_addr=request.remote_addr,
-            response_status_code=200, # 성공 응답
-            request_data_summary=str(data)[:200] # 요청 데이터 요약
-        )
-        db.session.add(usage_log)
-        db.session.commit()
-
         return jsonify({
-            "predicted_class": predicted_class,
+            "predicted_class": pred,
             "sepal_length": sepal_length,
             "sepal_width": sepal_width,
             "petal_length": petal_length,
             "petal_width": petal_width,
-            "result_id": new_iris_result.id # 저장된 결과의 ID 반환
+            "result_id": new_iris_entry.id # 저장된 결과의 ID 반환
         }), 200
     except RuntimeError as e:
         logging.error(f"AI Model Error in /api/predict (API Key): {e}")
