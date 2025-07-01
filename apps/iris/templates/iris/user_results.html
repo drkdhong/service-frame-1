@@ -42,9 +42,9 @@
                             <td>{{ result.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                             <td>
                                 {% if not result.confirm %}
-#                                    <form action="{{ url_for('iris.confirm_result', result_id=result.id) }}" method="POST" class="d-inline"> {# 인라인(inline)으로 표시 #}
-#                                        <button type="submit" class="btn btn-sm btn-primary">확인</button> {# 작은 버튼 스타일 #}
-#                                    </form>
+{#                                    <form action="{{ url_for('iris.confirm_result', result_id=result.id) }}" method="POST" class="d-inline"> #} {# 인라인(inline)으로 표시 #}
+{#                                        <button type="submit" class="btn btn-sm btn-primary">확인</button> #} {# 작은 버튼 스타일 #}
+{#                                    </form>   #}
                                 {% else %}
                                     <span class="badge bg-secondary">확인 완료</span> {# 확인 완료 시 뱃지 스타일 #}
                                 {% endif %}

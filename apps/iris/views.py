@@ -110,6 +110,7 @@ def save_iris_data():
         petal_length = request.form.get('petal_length')
         petal_width = request.form.get('petal_width')
         predicted_class = request.form.get('predicted_class')
+        print(f"predicted_class: '{predicted_class}'") #
         confirmed_class = request.form.get('confirmed_class') # 이게 핵심
         new_iris_entry = IRIS( user_id=current_user.id,
             #api_key_id=
@@ -204,7 +205,11 @@ def api_predict():
         pred = model.predict(features)[0]
 # curl -X POST "http://localhost:5000/iris/api/predict" -H "Content-Type: application/json" -H "X-API-Key: your_api_key" -d "{\"sepal_length\":6.0,\"sepal_width\":3.5,\"petal_length\":4.5,\"petal_width\":1.5}"
         print(f"pred: '{pred}'") #
+        print(f"pred: '{TARGET_NAMES[pred-1]}'") #TARGET_NAMES[pred]
         print(f": '{sepal_length} {sepal_width} {petal_length} {petal_width}' ") #
+
+        predicted_class_int = int(pred) if isinstance(pred, (int, float, object)) else pred
+        #result_id_int = int(new_iris_entry.id) if hasattr(new_iris_entry, 'id') else None
 
         new_usage_log=UsageLog(
             user_id=2, # 실제 APIKey 모델 사용 시 api_key_obj.user_id
@@ -224,20 +229,21 @@ def api_predict():
             sepal_width=sepal_width,
             petal_length=petal_length,
             petal_width=petal_width,
-            predicted_class=pred,
+#            predicted_class=str(pred),
+            predicted_class=TARGET_NAMES[pred-1],
             confirmed_class=None,
-            confirm=True
+            confirm=False
         )
         db.session.add(new_iris_entry)     # 새로운 객체를 데이터베이스 세션에 추가
         db.session.commit() # 변경 사항을 데이터베이스에 실제로 저장
 
         return jsonify({
-            "predicted_class": pred,
+            "predicted_class": predicted_class_int,
             "sepal_length": sepal_length,
             "sepal_width": sepal_width,
             "petal_length": petal_length,
-            "petal_width": petal_width,
-            "result_id": new_iris_entry.id # 저장된 결과의 ID 반환
+            "petal_width": petal_width
+#            "result_id": result_id_int # 저장된 결과의 ID 반환
         }), 200
     except RuntimeError as e:
         logging.error(f"AI Model Error in /api/predict (API Key): {e}")
