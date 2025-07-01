@@ -1,6 +1,7 @@
 #apps/dbmodels.py
 import enum
 import uuid
+from flask import current_app
 from apps import db  # apps에서 db를 import
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash 
@@ -69,7 +70,7 @@ class User(db.Model, UserMixin):
 class APIKey(db.Model):
     __tablename__ = 'api_keys'
     id = db.Column(db.Integer, primary_key=True)
-    key_string = db.Column(db.String(Config.API_KEY_LENGTH), unique=True, nullable=False, index=True)
+    key_string = db.Column(db.String(32), unique=True, nullable=False, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default= datetime.now)
@@ -77,8 +78,11 @@ class APIKey(db.Model):
     usage_count = db.Column(db.Integer, default=0)
     # 특정 API Key에 대한 일일/월간 사용량 제한을 위한 필드 추가 가능 (예: daily_limit, monthly_limit)
     usage_logs = db.relationship('UsageLog', backref='api_key', lazy=True, cascade="all, delete-orphan")
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.generate_key() # Generate key during initialization
     def generate_key(self):
-        self.key_string = str(uuid.uuid4()).replace('-', '')[:Config.API_KEY_LENGTH]
+        self.key_string = str(uuid.uuid4()).replace('-', '')[:current_app.config['API_KEY_LENGTH']]
     def __repr__(self):
         return f'<APIKey {self.key_string}>'
 
