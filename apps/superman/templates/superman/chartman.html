@@ -1,0 +1,186 @@
+{% extends 'superman/base.html' %}
+
+{% block title %}대시보드 - 관리자{% endblock %}
+
+{% block head_extra %}
+{% endblock %}
+
+{% block content %}
+<h1 class="mt-4">대시보드</h1>
+<p class="lead">관리자 패널에 오신 것을 환영합니다.</p>
+
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">총 사용자</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">12,345</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">총 매출</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">₩ 2,150,000</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">신규 주문</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">대기중인 문의</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">5</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-comments fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">사용자 가입 추이</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="userChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">제품 판매량</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="productSalesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">트래픽 소스</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="trafficSourceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">최근 활동</h6>
+            </div>
+            <div class="card-body">
+                <p>최근 관리자 활동 내역을 표시할 수 있습니다.</p>
+                <ul>
+                    <li>2025-07-02: 새로운 사용자 '홍길동' 등록</li>
+                    <li>2025-07-01: 제품 '스마트폰' 재고 업데이트</li>
+                    <li>2025-06-30: 주문 #1234 처리 완료</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    // 사이드바 토글 기능
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+
+    // Chart.js를 이용한 차트 그리기
+    document.addEventListener('DOMContentLoaded', function() {
+        // 사용자 가입 추이 차트
+        var userCtx = document.getElementById('userChart').getContext('2d');
+        var userChart = new Chart(userCtx, {
+            type: 'line',
+            data: {{ user_data | tojson }},
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // 제품 판매량 차트
+        var productSalesCtx = document.getElementById('productSalesChart').getContext('2d');
+        var productSalesChart = new Chart(productSalesCtx, {
+            type: 'bar',
+            data: {{ product_sales_data | tojson }},
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // 트래픽 소스 차트
+        var trafficSourceCtx = document.getElementById('trafficSourceChart').getContext('2d');
+        var trafficSourceChart = new Chart(trafficSourceCtx, {
+            type: 'pie',
+            data: {{ traffic_source_data | tojson }},
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        });
+    });
+</script>
+{% endblock %}

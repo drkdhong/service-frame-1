@@ -94,3 +94,56 @@ def chartboard():
                            radar_data=radar_data
     )
 
+@superman.route('/chartx')
+@superman_required
+def chartman():
+        # 대시보드에 표시할 데이터 (예시)
+    user_data = {
+        'labels': ['1월', '2월', '3월', '4월', '5월', '6월'],
+        'datasets': [{
+            'label': '신규 가입자',
+            'data': [100, 120, 150, 130, 180, 200],
+            'backgroundColor': 'rgba(75, 192, 192, 0.2)',
+            'borderColor': 'rgba(75, 192, 192, 1)',
+            'borderWidth': 1
+        }]
+    }
+
+    product_sales_data = {
+        'labels': ['제품 A', '제품 B', '제품 C', '제품 D'],
+        'datasets': [{
+            'label': '판매량',
+            'data': [500, 700, 300, 600],
+            'backgroundColor': [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)'
+            ],
+            'borderColor': [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)'
+            ],
+            'borderWidth': 1
+        }]
+    }
+
+    traffic_source_data = {
+        'labels': ['직접', '검색', '소셜 미디어', '레퍼럴'],
+        'datasets': [{
+            'data': [300, 200, 150, 100],
+            'backgroundColor': [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)'
+            ],
+            'hoverOffset': 4
+        }]
+    }
+    return render_template('superman/chartman.html',
+                           user_data=user_data,
+                           product_sales_data=product_sales_data,
+                           traffic_source_data=traffic_source_data)
