@@ -40,11 +40,13 @@ def create_app():     #  factory 함수
     from .iris import iris
     from .mypage import mypage
     from .superman import superman
+    from .superx import superx
     app.register_blueprint(main)
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(iris, url_prefix='/iris')
     app.register_blueprint(mypage, url_prefix='/mypage')
     app.register_blueprint(superman, url_prefix='/superman')
+    app.register_blueprint(superx, url_prefix='/superx')
     # flask-admin 은 블루프린트 등록이 필요없음
     # Flask-Admin 설정 (관리자 페이지)  # flask-admin 인스턴스 생성 및 관리자 페이지의 첫 화면 설정
     admin=Admin(app,name='Flask Admin', template_mode='bootstrap3', index_view = MyAdminIndexView())
