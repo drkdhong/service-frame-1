@@ -17,6 +17,8 @@
         {% if current_user.is_admin %}
         <li class="nav-item">
             <a class="nav-link" href="{{ url_for('admin.index') }}">관리자</a></li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('superman.dashboard') }}">슈퍼맨</a></li>
         {% endif %}
         <li class="nav-item">
             <a class="nav-link" href="{{ url_for('mypage.dashboard') }}">마이페이지</a></li>
