@@ -149,48 +149,43 @@ def ai_logs():
 @csrf.exempt
 def api_predict():
     auth_header = request.headers.get('X-API-Key')
+    print(f"auth_header: '{auth_header}'") #
     if not auth_header:
         #logging.warning("API Predict: No X-API-Key header provided.")
         return jsonify({"error": "API Key is required"}), 401
+    # 유효키인지 확인, 초기 설정
+    is_valid_key = False
+    # 모든 유효키 가져오기
+    active_api_keys = APIKey.query.filter_by(is_active=True).all()
+    # 유효기중에 포함되는지 확인
+    for api_key_entry in active_api_keys:
+#        if check_password_hash(api_key_entry.key_hash, auth_header):  # 암호화시
+        if api_key_entry.key_string == auth_header:
+            is_valid_key = True
+            print(f"is_valid_key: '{is_valid_key}'") #
+            # Optional: You might want to store the user associated with this key in flask.g
+            # 다른 것도 가능, For example: flask.g.current_user_id = api_key_entry.user_id
+            # user_id와 api_key_id를 g 객체에 저장하여 UsageLog에서 참조
+            g.user_id_for_log = api_key_entry.user_id
+            api_key_id_for_log = api_key_entry.id
+            usage_type_for_log = UsageType.API_KEY
+            break
 
-    #    하드코딩된 api_key 변수를 제거하거나, 실제 DB 조회 로직으로 대체하세요.
-    #    지금은 테스트를 위해 간단히 'your_api_key'와 일치하는지 확인하는 코드를 넣겠습니다.
-    expected_api_key = "your_api_key" # curl 명령에서 보낼 값과 일치해야 합니다.
-    if auth_header != expected_api_key:
-        #logging.warning(f"API Predict: Invalid API Key '{auth_header}'")
-        return jsonify({"error": "Invalid API Key"}), 401
-
-    # --- 실제 운영 환경에서는 APIKey 모델을 사용하여 데이터베이스에서 유효성을 검증해야 합니다. ---
-    # 예시: (주석 해제 시 apps.dbmodels 에서 APIKey 임포트 필요)
-    # from apps.dbmodels import APIKey # views.py 상단에 추가
-    # api_key_obj = APIKey.query.filter_by(key_string=auth_header, is_active=True).first()
-    # if not api_key_obj:
-    #     logging.warning(f"API Predict: Invalid or inactive API Key '{auth_header}'")
-    #     return jsonify({"error": "Invalid or inactive API Key"}), 401
-    # api_key_id_for_log = api_key_obj.id # UsageLog 및 IRIS 저장 시 사용할 ID
-    # ----------------------------------------------------------------------------------
-
-    # 임시로, 로그를 위해 실제 받은 API 키 문자열을 사용하겠습니다.
-    api_key_id_for_log = auth_header # 실제 DB ID 대신 문자열을 임시로 사용
-
-    # API Key 사용량 제한은 @rate_limit 데코레이터에서 처리됩니다.
-    # rate_limit 데코레이터에서 api_key.id를 사용하기 위해 kwargs에 전달
-    # 이 부분은 @rate_limit 데코레이터의 로직을 조금 수정해야 합니다.
-    # 혹은 rate_limit 데코레이터 내에서 직접 APIKey 객체를 찾도록 구현할 수 있습니다.
-    # 여기서는 간단히 user_id와 api_key_id를 g 객체에 저장하여 UsageLog에서 참조하도록 합니다.
-    #g.user_id_for_log = api_key.user_id
-    #g.api_key_id_for_log = api_key.id
-    #g.usage_type_for_log = UsageType.API_KEY
-
+    if not is_valid_key:
+        #logging.warning(f"API Predict: Invalid or inactive API Key '{auth_header}'")
+        return jsonify({"error": "Invalid or inactive API Key"}), 401
+ 
     data = request.get_json()
     if not data:
-        #logging.warning("API Predict: No JSON data provided.")
+        logging.warning("API Predict: No JSON data provided.")
         return jsonify({"error": "Invalid JSON"}), 400
+
     required_fields = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
     for field in required_fields:
         if field not in data:
-            #logging.warning(f"API Predict: Missing field '{field}' in request data.")
+            logging.warning(f"API Predict: Missing field '{field}' in request data.")
             return jsonify({"error": f"Missing field: {field}"}), 400
+
     try:
         sepal_length = float(data['sepal_length'])
         sepal_width = float(data['sepal_width'])
@@ -199,8 +194,8 @@ def api_predict():
     except ValueError:
         #logging.warning("API Predict: Invalid data type for Iris features.")
         return jsonify({"error": "Invalid data type for Iris features. Must be numbers."}), 400
-    try:
 
+    try:
         features=np.array([[sepal_length, sepal_width, petal_length, petal_width]])
         pred = model.predict(features)[0]
 # curl -X POST "http://localhost:5000/iris/api/predict" -H "Content-Type: application/json" -H "X-API-Key: your_api_key" -d "{\"sepal_length\":6.0,\"sepal_width\":3.5,\"petal_length\":4.5,\"petal_width\":1.5}"
@@ -212,9 +207,9 @@ def api_predict():
         #result_id_int = int(new_iris_entry.id) if hasattr(new_iris_entry, 'id') else None
 
         new_usage_log=UsageLog(
-            user_id=2, # 실제 APIKey 모델 사용 시 api_key_obj.user_id
-            api_key_id=1, # 실제 APIKey 모델 사용 시 api_key_obj.id
-            usage_type=UsageType.API_KEY,
+            user_id=g.user_id_for_log, # 테스트 2 사용
+            api_key_id=api_key_id_for_log, # 테스트 1 사용
+            usage_type=usage_type_for_log,  # UsageType.API_KEY 하드 코딩 가능
             endpoint=request.path,
             remote_addr=request.remote_addr,
             response_status_code=200,
@@ -223,8 +218,8 @@ def api_predict():
         db.session.add(new_usage_log)     # 새로운 객체를 데이터베이스 세션에 추가
 
         new_iris_entry = IRIS(
-            user_id=2, # 실제 APIKey 모델 사용 시 api_key_obj.user_id
-            api_key_id=1, # 실제 APIKey 모델 사용 시 api_key_obj.id
+            user_id=g.user_id_for_log, # 테스트 2 사용
+            api_key_id=api_key_id_for_log, # 테스트 1 사용
             sepal_length=sepal_length,
             sepal_width=sepal_width,
             petal_length=petal_length,
@@ -258,22 +253,3 @@ def api_predict():
         db.session.rollback()
         return jsonify({"error": "An unexpected error occurred."}), 500
 
-
-
-"""
-    if request.method == 'POST':
-        try:
-            sl = float(request.form['sepal_length'])
-            sw = float(request.form['sepal_width'])
-            pl = float(request.form['petal_length'])
-            pw = float(request.form['petal_width'])
-        except Exception as e:
-            return render_template('iris/index.html', error='입력 오류: '+str(e))
-        pred = model.predict([[sl, sw, pl, pw]])[0]
-        return render_template('iris/index.html',
-                               result=TARGET_NAMES[pred],
-                               sepal_length=sl, sepal_width=sw,
-                               petal_length=pl, petal_width=pw,
-                               api_key=request.form.get('api_key'))
-    return render_template('iris/index.html')
-"""
