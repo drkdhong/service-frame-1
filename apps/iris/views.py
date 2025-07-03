@@ -215,6 +215,7 @@ def api_predict():
             response_status_code=200,
             request_data_summary=str(data)[:200]
         )
+        #print(f"remote_addr: '{request.remote_addr}'") # 
         db.session.add(new_usage_log)     # 새로운 객체를 데이터베이스 세션에 추가
 
         new_iris_entry = IRIS(
