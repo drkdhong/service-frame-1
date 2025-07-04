@@ -157,7 +157,7 @@ def api_predict():
     is_valid_key = False
     # 모든 유효키 가져오기
     active_api_keys = APIKey.query.filter_by(is_active=True).all()
-    # 유효기중에 포함되는지 확인
+    # 유효키중에 포함되는지 확인
     for api_key_entry in active_api_keys:
 #        if check_password_hash(api_key_entry.key_hash, auth_header):  # 암호화시
         if api_key_entry.key_string == auth_header:

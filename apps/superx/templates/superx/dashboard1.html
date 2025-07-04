@@ -246,12 +246,54 @@
                             </div>
                         </div>
                     </div>
+// auc roc 추가
+                    <div class="col-lg-6 mb-4">
+                        <div class="chart-container">
+                            <div class="card-header">
+                                ROC 분포 (AJAX 로드 예시)
+                            </div>
+                            <div class="card-body">
+                                <canvas id="rocChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="chart-container">
+                            <div class="card-header">
+                                ROC 분포 (AJAX 로드 예시)
+                            </div>
+                            <div class="card-body">
+                                <canvas id="rocChart0"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="chart-container">
+                            <div class="card-header">
+                                ROC 분포 (AJAX 로드 예시)
+                            </div>
+                            <div class="card-body">
+                                <canvas id="rocChart1"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="chart-container">
+                            <div class="card-header">
+                                ROC 분포 (AJAX 로드 예시)
+                            </div>
+                            <div class="card-body">
+                                <canvas id="rocChart2"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcqYp2y5mZXlR+A2n1k+dqrk" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha512-7Pi/otERdZmQiwjMDF0CpnN03WchXgX3eJ/Qhxi8HjE5e2+b/Q4pP0yY1fJ5aQ/r9E1I5c+6F5t5Q5z5O5z5A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         // Feather Icons를 페이지에 적용합니다.
@@ -385,6 +427,7 @@
             }
         });
 
+
         // -----------------------------------------------------------
         // AJAX를 이용한 데이터 동적 로딩 및 차트 그리기 예시
         // (페이지 로딩 후 JavaScript가 서버에 데이터를 다시 요청하는 방식)
@@ -434,6 +477,111 @@
                 });
             })
             .catch(error => console.error('Error fetching chart data with AJAX:', error)); // 오류 발생 시 콘솔에 출력
+
+            //AUC ROC 차트 그리기
+            fetch('/superx/api/get_roc_data') // Flask 서버에 ROC 데이터를 요청해요.
+                .then(response => response.json())
+                .then(function(data) {
+                    const ctx = document.getElementById('rocChart').getContext('2d');
+                    const colors = ['red', 'green', 'blue'];
+                    const datasets = [];
+
+                    for (let i = 0; i < 3; i++) {
+                        datasets.push({
+                            label: 'Class ' + i + ' (AUC=' + data.auc[i].toFixed(2) + ')',
+                            data: data.fpr[i].map((v, idx) => ({x: v, y: data.tpr[i][idx]})),
+                            borderColor: colors[i],
+                            fill: false,
+                            cubicInterpolationMode: 'monotone'
+                        });
+                    }
+                    datasets.push({
+                        label: 'Random Guess',
+                        data: [{x: 0, y: 0}, {x: 1, y: 1}],
+                        borderColor: 'gray',
+                        borderDash: [5,3],
+                        fill: false,
+                        pointRadius: 0
+                    });
+
+                    const chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {datasets: datasets},
+                        options: {
+                            responsive: false,
+                            aspectRatio: 1,
+                            scales: {
+                                x: {
+                                    type: 'linear',
+                                    min: 0,
+                                    max: 1,
+                                    title: {display: true, text: 'False Positive Rate'},
+                                    ticks: {stepSize: 0.2}
+                                },
+                                y: {
+                                    type: 'linear',
+                                    min: 0,
+                                    max: 1,
+                                    title: {display: true, text: 'True Positive Rate'},
+                                    ticks: {stepSize: 0.2}
+                                }
+                            }
+                        }
+                    });
+                });
+            // AUC ROC 분류별 차트 그리기 
+            fetch('/superx/api/get_roc_data') // Flask 서버에 ROC 데이터를 요청해요.
+
+
+                .then(response => response.json())
+                .then(function(data) {
+                    const colors = ['red', 'green', 'blue'];
+                    for (let i = 0; i < 3; i++) {
+                        const ctx = document.getElementById('rocChart' + i).getContext('2d');
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                datasets: [
+                                    {
+                                        label: 'Class ' + i + ' (AUC=' + data.auc[i].toFixed(2) + ')',
+                                        data: data.fpr[i].map((v, idx) => ({x: v, y: data.tpr[i][idx]})),
+                                        borderColor: colors[i],
+                                        fill: false,
+                                        cubicInterpolationMode: 'monotone'
+                                    },
+                                    {
+                                        label: 'Random Guess',
+                                        data: [{x:0, y:0}, {x:1, y:1}],
+                                        borderColor: 'gray',
+                                        borderDash: [5,3],
+                                        fill: false,
+                                        pointRadius: 0
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: false,
+                                aspectRatio: 1,
+                                scales: {
+                                    x: {
+                                        type: 'linear',
+                                        min: 0,
+                                        max: 1,
+                                        title: {display: true, text: 'False Positive Rate'},
+                                        ticks: {stepSize: 0.2}
+                                    },
+                                    y: {
+                                        type: 'linear',
+                                        min: 0,
+                                        max: 1,
+                                        title: {display: true, text: 'True Positive Rate'},
+                                        ticks: {stepSize: 0.2}
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
     </script>
 </body>
 </html>

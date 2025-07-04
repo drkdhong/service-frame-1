@@ -3,6 +3,12 @@ from flask import Flask, flash, redirect, request, render_template, jsonify, abo
 import pickle, os, uuid 
 import logging, functools
 
+from sklearn.calibration import label_binarize
+from sklearn.datasets import load_iris
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import auc, roc_curve
+from sklearn.model_selection import train_test_split
 from sqlalchemy import func
 from apps.extensions import csrf # 이 줄을 추가하여 정의된 csrf 객체를 임포트
 from apps.dbmodels import IRIS, db, User, APIKey, UsageLog, UsageType
@@ -142,6 +148,42 @@ def get_chart_data():
     }
     # jsonify는 파이썬 딕셔너리를 웹에서 이해할 수 있는 JSON 형식으로 바꿔줘요.
     return jsonify(data)
+
+
+@superx.route('/api/get_roc_data') # ROC 데이터를 요청하면 이 함수가 실행돼요
+def roc_data():
+    # 1. 데이터 준비
+    iris = load_iris()
+    X = iris.data
+    y = iris.target
+    # 3가지 클래스니까 one-hot 인코딩
+    y_bin = label_binarize(y, classes=[0, 1, 2])
+
+    # 2. 데이터 분할
+    X_train, X_test, y_train, y_test = train_test_split(X, y_bin, test_size=0.3, random_state=42)
+
+    # 3. 모델 학습
+    clf = RandomForestClassifier()
+    clf.fit(X_train, y_train)
+
+    # 4. 예측 확률 얻기
+    y_score = clf.predict_proba(X_test)
+
+    # 5. ROC 데이터 계산 (클래스별)
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(3):  # 3가지 클래스
+        fpr[i], tpr[i], _ = roc_curve(y_test[:, i], y_score[i][:, 1])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # 데이터 포장해서 넘기기(자바스크립트에서 쓸 수 있게)
+    roc_data = {
+        'fpr': [list(fpr[i]) for i in range(3)],
+        'tpr': [list(tpr[i]) for i in range(3)],
+        'auc': [roc_auc[i] for i in range(3)],
+    }
+    return jsonify(roc_data)
 
 """
 @superx.route('/api/chart-data')
