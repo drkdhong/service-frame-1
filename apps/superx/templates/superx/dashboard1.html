@@ -33,6 +33,12 @@
             border: none; /* 카드 테두리 없애기 */
             box-shadow: 0 0.5rem 1rem rgba(0,0,0,.05); /* 카드에 부드러운 그림자 추가 */
         }
+        /* Chart container styling for consistent width */
+        .chart-container {
+            position: relative;
+            margin: auto;
+            min-width: 500px; /* Adjust this value as needed */
+        }
     </style>
 </head>
 <body>
@@ -231,7 +237,7 @@
                             <div class="card-header">
                                 월별 매출 추이 (AJAX 로드 예시)
                             </div>
-                            <div class="card-body">
+                            <div class="card-body chart-container">
                                 <canvas id="monthlySalesChartAjax"></canvas>
                             </div>
                         </div>
@@ -241,48 +247,48 @@
                             <div class="card-header">
                                 사용자 분포 (AJAX 로드 예시)
                             </div>
-                            <div class="card-body">
+                            <div class="card-body chart-container">
                                 <canvas id="userDistributionChartAjax"></canvas>
                             </div>
                         </div>
                     </div>
-// auc roc 추가
+
                     <div class="col-lg-6 mb-4">
-                        <div class="chart-container">
+                        <div class="card">
                             <div class="card-header">
-                                ROC 분포 (AJAX 로드 예시)
+                                통합 ROC 분포 (AJAX 로드 예시)
                             </div>
-                            <div class="card-body">
+                            <div class="card-body chart-container">
                                 <canvas id="rocChart"></canvas>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-6 mb-4">
-                        <div class="chart-container">
+                        <div class="card">
                             <div class="card-header">
-                                ROC 분포 (AJAX 로드 예시)
+                                ROC 분포 (Class 0) (AJAX 로드 예시)
                             </div>
-                            <div class="card-body">
+                            <div class="card-body chart-container">
                                 <canvas id="rocChart0"></canvas>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-6 mb-4">
-                        <div class="chart-container">
+                        <div class="card">
                             <div class="card-header">
-                                ROC 분포 (AJAX 로드 예시)
+                                ROC 분포 (Class 1) (AJAX 로드 예시)
                             </div>
-                            <div class="card-body">
+                            <div class="card-body chart-container">
                                 <canvas id="rocChart1"></canvas>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-6 mb-4">
-                        <div class="chart-container">
+                        <div class="card">
                             <div class="card-header">
-                                ROC 분포 (AJAX 로드 예시)
+                                ROC 분포 (Class 2) (AJAX 로드 예시)
                             </div>
-                            <div class="card-body">
+                            <div class="card-body chart-container">
                                 <canvas id="rocChart2"></canvas>
                             </div>
                         </div>
@@ -508,7 +514,7 @@
                         type: 'line',
                         data: {datasets: datasets},
                         options: {
-                            responsive: false,
+                            responsive: true, // Changed to true for responsiveness
                             aspectRatio: 1,
                             scales: {
                                 x: {
@@ -560,7 +566,7 @@
                                 ]
                             },
                             options: {
-                                responsive: false,
+                                responsive: true, // Changed to true for responsiveness
                                 aspectRatio: 1,
                                 scales: {
                                     x: {
