@@ -2,6 +2,7 @@
 from flask import Flask, flash, redirect, request, render_template, jsonify, abort, current_app, url_for, g
 import pickle, os, uuid 
 import logging, functools
+from apps.decorators import superman_required
 from apps.extensions import csrf # 이 줄을 추가하여 정의된 csrf 객체를 임포트
 from apps.dbmodels import IRIS, db, User, APIKey, UsageLog, UsageType
 import numpy as np
@@ -9,16 +10,6 @@ from flask_login import current_user, login_required
 from . import superman
 
 from datetime import datetime, timedelta
-
-# 관리자 권한 확인 데코레이터
-def superman_required(f):
-    @functools.wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_admin:
-            flash('관리자 권한이 필요합니다.', 'danger')
-            return redirect(url_for('main.index'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 @superman.route('/')
 @superman_required
