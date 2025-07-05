@@ -149,7 +149,6 @@ def get_chart_data():
     # jsonify는 파이썬 딕셔너리를 웹에서 이해할 수 있는 JSON 형식으로 바꿔줘요.
     return jsonify(data)
 
-
 @superx.route('/api/get_roc_data') # ROC 데이터를 요청하면 이 함수가 실행돼요
 def roc_data():
     # 1. 데이터 준비
@@ -185,6 +184,26 @@ def roc_data():
     }
     return jsonify(roc_data)
 
+@superx.route('/api/get_new_members_count')
+@superx_required
+def get_new_members_count():
+    today=datetime.now().date()  # 오늘 날짜를 가져와요
+    # 오늘 날짜에 가입한 사용자 수를 계산해요
+    #new_members_count = db.session.query(func.count(User.id)).filter(func.date(User.created_at) == today).scalar()
+    new_members_count = db.session.query(User).filter(db.func.date(User.created_at) == today).count()
+    print(f"오늘 가입한 사용자 수: {new_members_count}")
+    # 결과를 JSON 형식으로 반환해요
+    return jsonify({'count': new_members_count})
+
+@superx.route('/members')
+@superx_required
+def members_list():
+    # 모든 사용자 정보를 가져와요
+    users = db.session.query(User).order_by(User.created_at.desc()).all()
+    # 결과를 html에 반환
+    #return render_template('superx/members_list.html', users=users)
+    return render_template('superx/members_list.html', users=users)
+ 
 """
 @superx.route('/api/chart-data')
 def get_chart_data():
