@@ -17,6 +17,7 @@ class User(db.Model, UserMixin):
     email=db.Column(db.String, unique=True, index= True)
     password_hash=db.Column(db.String)
     is_admin=db.Column(db.Boolean,default=False)
+    is_active=db.Column(db.Boolean, default=True)  # 활성화 여부
     created_at=db.Column(db.DateTime, default= datetime.now)
     updated_at=db.Column(db.DateTime, default= datetime.now, onupdate=datetime.now)
     api_keys = db.relationship('APIKey', backref='user', lazy=True, cascade='all, delete-orphan')
