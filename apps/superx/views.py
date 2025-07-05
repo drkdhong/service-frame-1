@@ -10,7 +10,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import auc, roc_curve
 from sklearn.model_selection import train_test_split
 from sqlalchemy import func
-from apps.decorators import superx_required
 from apps.extensions import csrf # 이 줄을 추가하여 정의된 csrf 객체를 임포트
 from apps.dbmodels import IRIS, db, User, APIKey, UsageLog, UsageType
 import numpy as np
@@ -18,6 +17,16 @@ from flask_login import current_user, login_required
 from . import superx
 
 from datetime import datetime, timedelta
+
+# 관리자 권한 확인 데코레이터
+def superx_required(f):
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            flash('관리자 권한이 필요합니다.', 'danger')
+            return redirect(url_for('main.index'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @superx.route('/')
 @superx_required
@@ -219,4 +228,3 @@ def get_chart_data():
     # jsonify는 파이썬 딕셔너리를 웹에서 이해할 수 있는 JSON 형식으로 바꿔줘요.
     return jsonify(data)
 """
-

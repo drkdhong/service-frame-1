@@ -18,6 +18,10 @@ class User(db.Model, UserMixin):
     password_hash=db.Column(db.String)
     is_admin=db.Column(db.Boolean,default=False)
     is_active=db.Column(db.Boolean, default=True)  # 활성화 여부
+    usage_count = db.Column(db.Integer, default=0)
+    # 특정 User에 대한 일일/월간 사용량 제한을 위한 필드 추가 가능 (예: daily_limit, monthly_limit)
+    daily_limit = db.Column(db.Integer, default=1000)
+    monthly_limit = db.Column(db.Integer, default=5000)
     created_at=db.Column(db.DateTime, default= datetime.now)
     updated_at=db.Column(db.DateTime, default= datetime.now, onupdate=datetime.now)
     api_keys = db.relationship('APIKey', backref='user', lazy=True, cascade='all, delete-orphan')
@@ -52,9 +56,6 @@ class User(db.Model, UserMixin):
     def is_authenticated(self):
         return True
     @property
-    def is_active(self):
-        return True
-    @property
     def is_anonymous(self):
         return False
     def __repr__(self):
@@ -78,7 +79,10 @@ class APIKey(db.Model):
     last_used = db.Column(db.DateTime)
     usage_count = db.Column(db.Integer, default=0)
     # 특정 API Key에 대한 일일/월간 사용량 제한을 위한 필드 추가 가능 (예: daily_limit, monthly_limit)
+    daily_limit = db.Column(db.Integer, default=1000)
+    monthly_limit = db.Column(db.Integer, default=5000)
     usage_logs = db.relationship('UsageLog', backref='api_key', lazy=True, cascade="all, delete-orphan")
+    iris_results = db.relationship('IRIS', backref='api_key', lazy=True, cascade="all, delete-orphan")
     def __init__(self, user_id):
         self.user_id = user_id
         self.generate_key() # Generate key during initialization
