@@ -39,12 +39,16 @@ def create_app():     #  factory 함수
     from .auth import auth
     from .iris import iris
     from .mypage import mypage
+    from .mypagex import mypagex
+    from .adminx import adminx
     from .superman import superman
     from .superx import superx
     app.register_blueprint(main)
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(iris, url_prefix='/iris')
     app.register_blueprint(mypage, url_prefix='/mypage')
+    app.register_blueprint(mypagex, url_prefix='/mypagex')
+    app.register_blueprint(adminx, url_prefix='/adminx')
     app.register_blueprint(superman, url_prefix='/superman')
     app.register_blueprint(superx, url_prefix='/superx')
     # flask-admin 은 블루프린트 등록이 필요없음
@@ -56,7 +60,7 @@ def create_app():     #  factory 함수
     #admin.add_view(UsageLogAdminView(UsageLog, db.session, name='사용량 로그'))
     # db 테이블 생성 및 관리자 초기계정 생성
     with app.app_context():
-        #db.drop_all()         # 운영시에는 커멘트 처리 필요
+        db.drop_all()         # 운영시에는 커멘트 처리 필요
         db.create_all()       # 테이블 생성
 
         # 최초 관리자 계정 생성

@@ -1,9 +1,9 @@
 # apps/auth/views.py
 from apps.extensions import db, login_manager
-from .forms import SignUpForm, LoginForm
+from .forms import ChangePasswordForm, SignUpForm, LoginForm
 from apps.dbmodels import User
 from flask import render_template, flash, url_for, redirect, request
-from flask_login import login_user, logout_user
+from flask_login import current_user, login_required, login_user, logout_user
 from apps import auth  # views.py import해서 라우팅 등록
 from . import auth ## 추가
 
@@ -49,8 +49,25 @@ def login():
         flash("이메일 주소 및 비번 확인 필요")
     return render_template("auth/login.html",form=form)
 # logout 엔드포인트 
-@auth.route("/logout")     
+@auth.route("/logout")
+@login_required  # 로그인한 사용자만 접근 가능     
 def logout():
     # 사용자 로그아웃
     logout_user()
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("main.index"))  # 메인 페이지로 이동
+
+# change_password 엔드포인트
+@auth.route("/change_password", methods=["GET", "POST"])
+@login_required  # 로그인한 사용자만 접근 가능
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        user = User.query.get(current_user.id)
+        if user.verify_password(form.current_password.data):
+            user.password = form.new_password.data
+            db.session.commit()
+            flash("비밀번호가 성공적으로 변경되었습니다.")
+            return redirect(url_for("mypagex.dashboard"))
+        else:
+            flash("현재 비밀번호가 올바르지 않습니다.")
+    return render_template("auth/change_password.html", form=form)

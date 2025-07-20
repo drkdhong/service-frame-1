@@ -1,0 +1,21 @@
+{# apps/mypagex/templates/mypagex/dashboard.html #}
+{# apps/mypagex/templates/mypagex/dashboard.html #}
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4"> {# Added a container and vertical padding #}
+    <h1 class="mb-4 text-center text-md-start">마이페이지 대시보드</h1> {# Centered heading on small screens, left-aligned on medium and up #}
+
+    <div class="row justify-content-center"> {# Centered the card horizontally #}
+        <div class="col-12 col-md-8 col-lg-6"> {# Card takes full width on small, 8 cols on medium, 6 on large screens #}
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-info w-100 w-sm-auto">비밀번호 변경</a> {# Button takes full width on small screens, auto width on small-medium and up #}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

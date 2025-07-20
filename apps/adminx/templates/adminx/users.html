@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">사용자 관리</h1>
+
+{% if users %}
+<div class="table-responsive">
+    <table class="table table-hover table-striped">
+        <thead class="table-primary">
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">사용자 이름</th>
+                <th scope="col">이메일</th>
+                <th scope="col">관리자 여부</th>
+                <th scope="col">활성 상태</th>
+                <th scope="col">총 사용 횟수</th>
+                <th scope="col">가입일</th>
+                <th scope="col">동작</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                    {% if user.is_admin %}
+                        <span class="badge bg-danger">관리자</span>
+                    {% else %}
+                        <span class="badge bg-secondary">일반</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.is_active %}
+                        <span class="badge bg-success">활성</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">비활성</span>
+                    {% endif %}
+                </td>
+                <td>{{ user.usage_count }}</td>
+                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    {% if user.id != current_user.id %} {# 자기 자신은 변경 불가 #}
+                        <form method="POST" action="#" style="display:inline;">
+                        {# <form method="POST" action="{{ url_for('admin.toggle_user_active', user_id=user.id) }}" style="display:inline;"> #}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm {% if user.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                                    onclick="return confirm('이 사용자의 계정 상태를 변경하시겠습니까?');">
+                                {{ '비활성화' if user.is_active else '활성화' }}
+                            </button>
+                        </form>
+                        <form method="POST" action="#" style="display:inline;" class="ms-1">
+                        {# <form method="POST" action="{{ url_for('admin.toggle_user_admin', user_id=user.id) }}" style="display:inline;" class="ms-1"> #}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm {% if user.is_admin %}btn-outline-danger{% else %}btn-outline-info{% endif %}"
+                                    onclick="return confirm('이 사용자의 관리자 권한을 변경하시겠습니까?');">
+                                {{ '관리자 해제' if user.is_admin else '관리자 부여' }}
+                            </button>
+                        </form>
+                    {% else %}
+                        <small class="text-muted">자기 계정</small>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info" role="alert">
+    등록된 사용자가 없습니다.
+</div>
+{% endif %}
+{% endblock %}

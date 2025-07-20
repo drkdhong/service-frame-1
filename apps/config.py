@@ -1,3 +1,4 @@
+#apps/config.py
 import os
 from datetime import timedelta
 if os.environ.get('RENDER', None) != 'true':
@@ -26,7 +27,8 @@ class Config:
     API_KEY_EXPIRATION_DAYS = 365 # API 키 만료일
     LOGIN_USER_RATE_LIMIT = os.getenv('LOGIN_USER_RATE_LIMIT')    
     API_KEY_RATE_LIMIT = os.getenv('API_KEY_RATE_LIMIT')
-    API_KEY_LENGTH = int(os.getenv('API_KEY_LENGTH'))
+    API_KEY_LENGTH = os.getenv('API_KEY_LENGTH')
+    print(type(API_KEY_LENGTH))
     # .env 파일에서 세션 유효 기간(분 단위)을 문자열로 읽어옵니다.
     # getenv의 두 번째 인자는 환경 변수가 없을 경우 사용할 기본값입니다.
     session_lifetime_minutes_str = os.getenv('SESSION_LIFETIME_MINUTES', '30')

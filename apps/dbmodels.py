@@ -1,5 +1,6 @@
 #apps/dbmodels.py
 import enum
+import os
 import uuid
 from flask import current_app
 from apps import db  # apps에서 db를 import
@@ -26,6 +27,10 @@ class User(db.Model, UserMixin):
     updated_at=db.Column(db.DateTime, default= datetime.now, onupdate=datetime.now)
     api_keys = db.relationship('APIKey', backref='user', lazy=True, cascade='all, delete-orphan')
     usage_logs = db.relationship('UsageLog', backref='user', lazy=True, cascade='all, delete-orphan')
+    # 추가  
+    prediction_results = db.relationship('PredictionResult', backref='user', lazy=True, cascade='all, delete-orphan')
+    subscriptions = db.relationship('Subscription', backref='subscriber', lazy=True, cascade="all, delete-orphan")
+    # 추가
     iris_results = db.relationship('IRIS', backref='user', lazy=True, cascade='all, delete-orphan')
     # The 'password' property and its setter
     @property
@@ -73,6 +78,9 @@ class APIKey(db.Model):
     __tablename__ = 'api_keys'
     id = db.Column(db.Integer, primary_key=True)
     key_string = db.Column(db.String(32), unique=True, nullable=False, index=True)
+    # 추가
+    description = db.Column(db.String(100), nullable=True)
+    # 추가
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default= datetime.now)
@@ -82,34 +90,112 @@ class APIKey(db.Model):
     daily_limit = db.Column(db.Integer, default=1000)
     monthly_limit = db.Column(db.Integer, default=5000)
     usage_logs = db.relationship('UsageLog', backref='api_key', lazy=True, cascade="all, delete-orphan")
+    # 추가
+    prediction_results = db.relationship('PredictionResult', backref='api_key', lazy=True, cascade="all, delete-orphan")
+    # 추가
     iris_results = db.relationship('IRIS', backref='api_key', lazy=True, cascade="all, delete-orphan")
     def __init__(self, user_id):
         self.user_id = user_id
         self.generate_key() # Generate key during initialization
     def generate_key(self):
-        self.key_string = str(uuid.uuid4()).replace('-', '')[:current_app.config['API_KEY_LENGTH']]
+        api_key_length = int(current_app.config.get('API_KEY_LENGTH', 32)) # .get() 메서드를 사용하여 기본값 지정 가능
+        print(f"API Key Length Type: {type(api_key_length)}")
+        print(f"API Key Length Value: {api_key_length}")
+        # UUID를 생성하고, 하이픈을 제거한 후, 정의된 길이만큼 슬라이싱합니다.
+        self.key_string = str(uuid.uuid4()).replace('-', '')[:api_key_length]
+        print(f"Generated API Key: {self.key_string}")
+
+        #self.key_string = str(uuid.uuid4()).replace('-', '')[:current_app.config.get('API_KEY_LENGTH',32)]
+        #self.key_string = str(uuid.uuid4()).replace('-', '')[:current_app.config['API_KEY_LENGTH']]
+        print(self.key_string)
     def __repr__(self):
         return f'<APIKey {self.key_string}>'
 
+# 변경
+# 사용 타입 Enum
 class UsageType(enum.Enum):
     LOGIN = 'login'
     API_KEY = 'api_key'
+    WEB_UI = 'web_ui' # 웹 UI를 통한 서비스 사용 추가
 
+# 사용 로그 모델
 class UsageLog(db.Model):
     __tablename__ = 'usage_logs'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
-    api_key_id = db.Column(db.Integer, db.ForeignKey('api_keys.id'), index=True)
-    usage_type = db.Column(db.Enum(UsageType), nullable=False) # 로그인 기반 또는 API Key 기반
-    login_confirm = db.Column(db.String(10), nullable=True) # 로그인 사용자의 AI 추론에 대한 결과 confirm저장 유무(확인)
-    endpoint = db.Column(db.String(120), nullable=False) # 사용된 서비스 엔드포인트
-    timestamp = db.Column(db.DateTime, default= datetime.now, index=True)
-    # 요청 IP, 요청 바디 요약, 응답 상태 코드 등 상세 로그를 위한 필드 추가
-    remote_addr = db.Column(db.String(45)) # IPv4: 15, IPv6: 45
+    ai_service_id = db.Column(db.Integer, db.ForeignKey('aiservice.id'), nullable=True) # AI 서비스 사용 로그가 아닌 로그인 등은 Null 허용
+    api_key_id = db.Column(db.Integer, db.ForeignKey('api_keys.id'), index=True, nullable=True) # API 키 사용 로그가 아닌 경우는 Null 허용
+    endpoint = db.Column(db.String(120), nullable=True) # 어떤 엔드포인트에 접근했는지 (예: /api/iris)
+    usage_type = db.Column(db.Enum(UsageType), nullable=False)
+    usage_count = db.Column(db.Integer, default=1, nullable=False) # 각 로그 항목은 기본적으로 1회 사용
+    login_confirm = db.Column(db.String(10), nullable=True) # 로그인 여부 확인용 (예: 'success', 'fail')
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    remote_addr = db.Column(db.String(45))
     request_data_summary = db.Column(db.Text)
     response_status_code = db.Column(db.Integer)
-    def __repr__(self):
-        return f'<UsageLog {self.endpoint} Type: {self.usage_type} at {self.timestamp}>'
+
+    def __repr__(self) -> str:
+        return f"<UsageLog(ai_service_id={self.ai_service_id}, usage_type='{self.usage_type}', timestamp={self.timestamp})>"
+
+
+# 추가
+# AI 서비스 모델
+class AIService(db.Model):
+    __tablename__ = "aiservice"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    keywords = db.Column(db.String(200), nullable=False) # 쉼표로 구분된 키워드 (예: "iris, 분류, 꽃")
+
+    # 관계
+    subscriptions = db.relationship('Subscription', backref='ai_service', lazy=True, cascade="all, delete-orphan")
+    usage_logs = db.relationship('UsageLog', backref='ai_service', lazy=True, cascade="all, delete-orphan")
+    prediction_results = db.relationship('PredictionResult', backref='ai_service', lazy=True, cascade="all, delete-orphan")
+
+    def __repr__(self) -> str:
+        return f"<AIService(name='{self.name}')>"
+
+
+# 예측 결과 기본 모델 (PredictionResult)
+class PredictionResult(db.Model):
+    __tablename__ = 'prediction_results'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    ai_service_id = db.Column(db.Integer, db.ForeignKey('aiservice.id'), nullable=False)
+    api_key_id = db.Column(db.Integer, db.ForeignKey('api_keys.id'), index=True)
+    predicted_class = db.Column(db.String(50))
+    model_version = db.Column(db.String(20), default='1.0')
+    confirmed_class = db.Column(db.String(50))
+    confirm = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    # 다형성 설정: 어떤 예측 결과 유형인지 구분
+    type = db.Column(db.String(50))
+
+    __mapper_args__ = {
+        'polymorphic_on': type,
+        'polymorphic_identity': 'prediction_result'
+    }
+
+    def __repr__(self) -> str:
+        return f"<PredictionResult(user_id={self.user_id}, ai_service_id={self.ai_service_id}, predicted_class='{self.predicted_class}')>"
+
+# 구독 모델
+class Subscription(db.Model):
+    __tablename__ = "subscription"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    ai_service_id = db.Column(db.Integer, db.ForeignKey('aiservice.id'), nullable=False)
+    status = db.Column(db.String(20), default='pending', nullable=False) # pending, approved, rejected
+    request_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    approval_date = db.Column(db.DateTime, nullable=True)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'ai_service_id', name='_user_ai_service_uc'),)
+
+    def __repr__(self) -> str:
+        return f"<Subscription(user_id={self.user_id}, ai_service_id={self.ai_service_id}, status='{self.status}')>"
+
+# 추가
+
 
 class IRIS(db.Model):
     __tablename__ = 'iris_results'
